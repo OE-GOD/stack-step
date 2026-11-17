@@ -460,11 +460,12 @@ checked in a real browser with Playwright (screenshots at 1280 px and 360 px sav
 Milestones 4–7 do not depend on each other, only on 1–3, so they are built side by
 side and each is checked in the browser on its own.
 
-All eight milestones are done (see `CHANGELOG.md`). Not tried yet, because they need
-the owner's accounts or another machine: a live tutor call with a real API key; real
-GitHub Pages, Vercel and Netlify deploys (the repository has no remote yet, so the Pages
-workflow has never run); and `npm run verify:native` in its gdb mode on x86-64 Linux
-(tested only with recorded gdb output).
+All eight milestones are done (see `CHANGELOG.md`). The site runs on GitHub Pages at
+https://oe-god.github.io/stack-step/ (published by the workflow on 2026-11-17; the full
+production browser suite passed against it). Not tried yet, because they need the
+owner's accounts or another machine: a live tutor call with a real API key; real Vercel
+and Netlify deploys; and `npm run verify:native` in its gdb mode on x86-64 Linux (tested
+only with recorded gdb output).
 
 ---
 

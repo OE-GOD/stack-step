@@ -117,13 +117,28 @@ What each milestone added, the newest milestone first.
   limits. Its claims were checked against the code by a separate review; the deploy
   steps have not been tried with real accounts.
 
+### On GitHub Pages
+
+- The site runs at https://oe-god.github.io/stack-step/. Before it published the build,
+  the workflow ran `npm run check` (type check, lint, format check and every unit test) on
+  GitHub's Linux machine.
+- The full production browser suite passed against the first deployment (647 passed, 0
+  failed, through a local proxy), and its 52 files were byte-identical to a local build.
+- A walk-through of the live site at 360 and 1280 px found two problems, both fixed:
+  - on a phone, a practice code box hid the end of a long line, sometimes the very part
+    the question asks about (`…, 0x100000000` showed as `…, 0x10`, or a size comment of
+    "Where is rip?"). Code without an address column now wraps between words, with the
+    rows after the first indented; "Where is rip?" writes each size right after its line;
+  - the tutor's check asked the root of the domain (`/api/tutor`) instead of the site's
+    own folder (`/stack-step/api/tutor`). It now asks next to the page.
+
 ### Final check
 
 - From a clean copy of the project: `npm ci`, `npm run build`, `npm run dev` and
   `vite preview` all work, with no console error and no sideways scrolling.
 - After the last fixes: type check, ESLint and Prettier are clean. Vitest: 84 files,
-  10,143 tests, all pass. `npm run verify:native`: 10 programs, 308 steps, all matched.
-- Playwright: 647 passed on the built site and 855 on the dev server, 0 failed (the
+  10,144 tests, all pass. `npm run verify:native`: 10 programs, 308 steps, all matched.
+- Playwright: 648 passed on the built site and 856 on the dev server, 0 failed (the
   skipped tests belong to the other screen size or to dev-only test pages).
 - 4,463 page states (200 problems of every topic, shown and checked; 40 quizzes with
   every question and their results; every lesson; every page) have no sideways
@@ -133,7 +148,7 @@ What each milestone added, the newest milestone first.
 - No key, SDK or API name in any built file.
 - 56 screenshots of every page in `docs/screenshots/final/`.
 
-## Milestone 7: the optional AI tutor (live call and real deploys not yet tried)
+## Milestone 7: the optional AI tutor (live call, Vercel and Netlify not yet tried)
 
 - One small serverless function (`api/tutor.ts` for Vercel, `netlify/functions/tutor.ts`
   for Netlify, served by `server/devPlugin.ts` during `npm run dev`) calls the Anthropic

@@ -1,5 +1,13 @@
-import { memo, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react'
-import { tokenizeLine, type AsmTokenKind } from '../../lib/asmHighlight'
+import {
+  Fragment,
+  memo,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
+import { tokenizeLine, type AsmToken, type AsmTokenKind } from '../../lib/asmHighlight'
 import { cx } from '../ui/cx'
 import { BreakpointDot, LibraryHourglass, NextLineArrow } from './LineMarks'
 import { codeFade, FOCUS_RING_FOR_CHILD, hidesContent, useScrollEdges } from './useScrollEdges'
@@ -16,6 +24,13 @@ export interface CodeListingProps {
   breakpoints?: readonly number[]
   /** The name of the listing for screen readers. Default "Code". */
   label?: string
+  /**
+   * Wrap long lines inside the box instead of scrolling sideways. For short read-only code
+   * that must be read whole on a phone (a practice problem): a continued line is indented
+   * under its first row, and the line number stays on the first row. Leave it off where
+   * another column must stay row by row beside the code.
+   */
+  wrap?: boolean
   className?: string
 }
 
@@ -28,6 +43,50 @@ const TOKEN_CLASSES: Partial<Record<AsmTokenKind, string>> = {
   directive: 'text-syn-directive',
   string: 'text-syn-string',
   label: 'font-bold',
+}
+
+/** One token, in its color. */
+function TokenText({ token }: { token: AsmToken }): ReactNode {
+  return <span className={TOKEN_CLASSES[token.kind]}>{token.text}</span>
+}
+
+/**
+ * A line that may wrap (`wrap`): it breaks only between words, never inside an operand
+ * such as `[rbp-4],` or a comment such as `# 7 bytes` (each one moves to the next row as a
+ * whole; only a word wider than the box breaks inside itself).
+ */
+function WrappingTokens({ tokens }: { tokens: readonly AsmToken[] }): ReactNode {
+  const words: AsmToken[][] = []
+  for (const token of tokens) {
+    const last = words.at(-1)
+    if (token.kind === 'space' || last === undefined || last[0]?.kind === 'space') {
+      words.push([token])
+    } else {
+      last.push(token)
+    }
+  }
+  return words.map((word, index) =>
+    word[0]?.kind === 'space' ? (
+      <Fragment key={index}>{word[0].text}</Fragment>
+    ) : (
+      // indent-0: the line's hanging indent is inherited, and must not move the word.
+      <span key={index} className="inline-block max-w-full indent-0">
+        {word.map((token, tokenIndex) => (
+          <TokenText key={tokenIndex} token={token} />
+        ))}
+      </span>
+    ),
+  )
+}
+
+/**
+ * The hanging indent of a wrapped line: its rows after the first start 2 characters to the
+ * right of where its text starts (after its own indent), so they never look like a line.
+ */
+function hangingIndent(tokens: readonly AsmToken[]): CSSProperties {
+  const first = tokens[0]
+  const indent = (first?.kind === 'space' ? first.text.length : 0) + 2
+  return { paddingLeft: `calc(0.375rem + ${indent}ch)`, textIndent: `-${indent}ch` }
 }
 
 /** Dashed lines above and below the line whose library call is running. */
@@ -50,6 +109,7 @@ export const CodeListing = memo(function CodeListing({
   libraryName = null,
   breakpoints = [],
   label = 'Code',
+  wrap = false,
   className,
 }: CodeListingProps): ReactNode {
   // One line break at the very end does not make an extra empty line.
@@ -93,7 +153,11 @@ export const CodeListing = memo(function CodeListing({
       >
         <ol
           ref={listRef}
-          className="min-w-max py-1.5 font-mono text-[0.8125rem] leading-6 text-ink max-lg:text-sm"
+          data-code-wrap={wrap ? '' : undefined}
+          className={cx(
+            'py-1.5 font-mono text-[0.8125rem] leading-6 text-ink max-lg:text-sm',
+            !wrap && 'min-w-max',
+          )}
         >
           {lines.map((tokens, index) => {
             const line = index + 1
@@ -116,6 +180,8 @@ export const CodeListing = memo(function CodeListing({
                   aria-hidden="true"
                   className={cx(
                     'sticky left-0 flex shrink-0 items-center gap-1 pr-2 pl-1.5 select-none',
+                    // A wrapped line: the number stays beside its first row.
+                    wrap && 'self-start',
                     isCurrent ? 'bg-current-line' : 'bg-code-bg',
                   )}
                 >
@@ -137,14 +203,21 @@ export const CodeListing = memo(function CodeListing({
                 {isCurrent && <span className="sr-only">Runs next: </span>}
                 {isLibrary && <span className="sr-only">Inside the library: </span>}
                 {hasBreakpoint && <span className="sr-only">Breakpoint: </span>}
-                <code className="pl-1.5 whitespace-pre">
-                  {tokens.length === 0
-                    ? ' '
-                    : tokens.map((token, tokenIndex) => (
-                        <span key={tokenIndex} className={TOKEN_CLASSES[token.kind]}>
-                          {token.text}
-                        </span>
-                      ))}
+                <code
+                  className={
+                    wrap
+                      ? 'min-w-0 flex-1 [overflow-wrap:anywhere] whitespace-pre-wrap'
+                      : 'pl-1.5 whitespace-pre'
+                  }
+                  style={wrap ? hangingIndent(tokens) : undefined}
+                >
+                  {tokens.length === 0 ? (
+                    ' '
+                  ) : wrap ? (
+                    <WrappingTokens tokens={tokens} />
+                  ) : (
+                    tokens.map((token, tokenIndex) => <TokenText key={tokenIndex} token={token} />)
+                  )}
                 </code>
                 {isLibrary && (
                   <span className="ml-[2ch] self-center rounded-full border border-dashed border-primary bg-primary-soft px-2 font-sans text-xs leading-4 font-semibold whitespace-nowrap text-primary">

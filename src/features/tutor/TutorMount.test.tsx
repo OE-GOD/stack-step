@@ -73,7 +73,7 @@ describe('TutorMount without a tutor', () => {
     const asked = stubFetch(() => new Promise<Response>((resolve) => (answer = resolve)))
     const { container } = render(<TutorMount getContext={getContext} />)
     await settle()
-    expect(asked).toEqual(['/api/tutor'])
+    expect(asked).toEqual(['api/tutor'])
     expectNothing(container)
     answer(json(200, { enabled: false }))
     await settle()
@@ -106,7 +106,7 @@ describe('TutorMount without a tutor', () => {
     const asked = stubFetch(respond)
     const { container } = render(<TutorMount getContext={getContext} />)
     await settle()
-    expect(asked).toEqual(['/api/tutor'])
+    expect(asked).toEqual(['api/tutor'])
     expectNothing(container)
   })
 
@@ -164,10 +164,10 @@ describe('one request per page load', () => {
     // The student goes to another page and comes back: the answer is already known, so
     // the button is there in the very first render.
     render(<TutorMount getContext={getContext} />)
-    expect(asked).toEqual(['/api/tutor'])
+    expect(asked).toEqual(['api/tutor'])
     await settle()
     expect(screen.getByRole('button', { name: 'Ask the tutor' })).toBeTruthy()
-    expect(asked).toEqual(['/api/tutor'])
+    expect(asked).toEqual(['api/tutor'])
   })
 
   it('also remembers "no": a second page does not ask again', async () => {
@@ -177,7 +177,7 @@ describe('one request per page load', () => {
     first.unmount()
     const second = render(<TutorMount getContext={getContext} />)
     await settle()
-    expect(asked).toEqual(['/api/tutor'])
+    expect(asked).toEqual(['api/tutor'])
     expectNothing(second.container)
   })
 })

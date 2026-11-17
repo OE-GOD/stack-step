@@ -58,17 +58,22 @@ function CodePart({
   addresses?: readonly string[]
 }): ReactNode {
   const source = lines.join('\n')
+  const withAddresses = addresses !== undefined && addresses.length > 0
   // The code is as big as the values in the tables of the question (15 px): one code size
   // in a problem. (The listing's own size is the smaller one of the stepper's panels.)
+  // Long lines wrap, so a phone shows every line whole: the part cut off at the edge can be
+  // the very thing the question asks about (`…, 0x100000000`, or a size in a comment).
+  // Beside an address column a line must stay one row, so that code scrolls instead.
   const listing = (
     <CodeListing
       source={source}
       currentLine={null}
       label="Code of the problem"
+      wrap={!withAddresses}
       className="max-h-96 min-w-0 [&_ol]:text-[0.9375rem]"
     />
   )
-  if (addresses === undefined || addresses.length === 0) return listing
+  if (!withAddresses) return listing
   return (
     // min-w-0: this box is an item of the question's grid. Without it, a long code line
     // (`lea eax, [r12+r12*2]` next to its address) widens the grid's column past a 360 px

@@ -8,8 +8,12 @@
  * stays small and imports nothing.
  */
 
-/** The address of the tutor function: the same on Vercel, on Netlify and in the dev server. */
-export const TUTOR_ENDPOINT = '/api/tutor'
+/**
+ * The address of the tutor function, next to the page: `/api/tutor` for a site at the root
+ * of its domain (Vercel, Netlify, the dev server), and `/stack-step/api/tutor` for a site
+ * in a folder (GitHub Pages), so the page never asks outside its own folder.
+ */
+export const TUTOR_ENDPOINT = 'api/tutor'
 
 /** How long the page waits for the answer. */
 const TIMEOUT_MS = 8000

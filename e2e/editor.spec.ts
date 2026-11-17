@@ -379,7 +379,16 @@ test.describe('breakpoints', () => {
 
   test('a click below the last line sets nothing', async ({ page }) => {
     await open(page)
-    const last = await lineNumberCell(page, 19).boundingBox()
+    // Measure once the lines have stopped moving: on a busy machine the layout can still
+    // settle just after the page opens, and a click measured too early lands on a line.
+    let last = await lineNumberCell(page, 19).boundingBox()
+    await expect
+      .poll(async () => {
+        const before = last
+        last = await lineNumberCell(page, 19).boundingBox()
+        return before !== null && last !== null && before.x === last.x && before.y === last.y
+      })
+      .toBe(true)
     if (last === null) throw new Error('Line 19 is not on the screen.')
     const { x } = await marksRowPoint(page, 19)
     await page.mouse.click(x, last.y + last.height + 40)

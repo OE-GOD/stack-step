@@ -128,11 +128,22 @@ describe('fetchTutorEnabled', () => {
     await fetchTutorEnabled(fetchImpl)
     expect(calls).toHaveLength(1)
     const [url, init] = calls[0] ?? []
-    expect(url).toBe('/api/tutor')
-    expect(TUTOR_ENDPOINT).toBe('/api/tutor')
+    expect(url).toBe('api/tutor')
+    expect(TUTOR_ENDPOINT).toBe('api/tutor')
     expect(init?.method).toBeUndefined()
     expect(init?.cache).toBe('no-store')
     expect(init?.body).toBeUndefined()
+  })
+})
+
+describe('TUTOR_ENDPOINT', () => {
+  it('is next to the page: the root of a site, or its folder on GitHub Pages', () => {
+    expect(new URL(TUTOR_ENDPOINT, 'https://stack-step.example/').href).toBe(
+      'https://stack-step.example/api/tutor',
+    )
+    expect(new URL(TUTOR_ENDPOINT, 'https://someone.github.io/stack-step/').href).toBe(
+      'https://someone.github.io/stack-step/api/tutor',
+    )
   })
 })
 
@@ -141,7 +152,7 @@ describe('askTutor: a reply', () => {
     const { calls } = await ask(plain('ok'))
     expect(calls).toHaveLength(1)
     const [url, init] = calls[0] ?? []
-    expect(url).toBe('/api/tutor')
+    expect(url).toBe('api/tutor')
     expect(init?.method).toBe('POST')
     expect(new Headers(init?.headers).get('content-type')).toBe('application/json')
     const body = init?.body

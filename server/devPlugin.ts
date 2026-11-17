@@ -17,7 +17,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin, ViteDevServer } from 'vite'
 
-/** The address of the function: the same as on Vercel and on Netlify. */
+/**
+ * The address of the function: the same as on Vercel and on Netlify. Pages ask for
+ * `api/tutor` next to themselves, so a developer page in a folder (the drawer's harness,
+ * src/features/tutor/demo.html) asks `…/api/tutor`: every path that ends so is served.
+ */
 const ROUTE = '/api/tutor'
 /** The module that exports the handler, as a path from the project root. */
 const HANDLER_MODULE = '/server/tutorCore.ts'
@@ -111,7 +115,7 @@ export function tutorDevPlugin(): Plugin {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
-        if ((req.url ?? '').split('?', 1)[0] !== ROUTE) {
+        if (!(req.url ?? '').split('?', 1)[0].endsWith(ROUTE)) {
           next()
           return
         }

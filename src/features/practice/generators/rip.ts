@@ -303,10 +303,9 @@ function formB(rng: Rng): Built {
   const sizes = sizesOf(
     [...lines.map((line) => `    ${line.text}`), ...ending(lines)].join('\n') + '\n',
   )
-  const width = Math.max(...lines.map((line) => line.text.length))
-  const shown = lines.map(
-    (line, index) => `    ${line.text.padEnd(width)}  # ${bytes(sizes[index])}`,
-  )
+  // Each size right after its line (not lined up in a column): on a phone, a short line
+  // keeps its size on the same row, and a long one wraps with its size whole.
+  const shown = lines.map((line, index) => `    ${line.text}  # ${bytes(sizes[index])}`)
 
   // p: the line whose address is asked; q: the line during which rip is asked.
   // The two answers always differ (rip while line q runs is the address of line q + 1).

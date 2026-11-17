@@ -18,6 +18,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { generate as callRetProblem } from '../src/features/practice/generators/call-ret'
 import { generate as homeworkTableProblem } from '../src/features/practice/generators/homework-table'
 import { generate as movLegalityProblem } from '../src/features/practice/generators/mov-legality'
+import { generate as ripProblem } from '../src/features/practice/generators/rip'
 import { generateWithPredictions as registerNamesProblem } from '../src/features/practice/generators/register-names'
 import { generateWithPredictions as subregisterProblem } from '../src/features/practice/generators/subregister-writes'
 import { generate as rspTrackerProblem } from '../src/features/practice/generators/rsp-tracker'
@@ -667,6 +668,49 @@ test.describe('on a phone screen', () => {
     await expect(answerBoxes(item).getByText('Right answer')).toBeVisible()
     await expectBoxesInside(item, item)
     await expectNoSidewaysScroll(page)
+    expect(errors).toEqual([])
+  })
+
+  test('code without an address column wraps on a phone, so every line can be read whole', async ({
+    page,
+  }) => {
+    // The live-site check: at 360 px `mov dword ptr -8[rbp], 0x100000000` showed as
+    // `…, 0x10`, and the size comments of "Where is rip?" problems were past the edge.
+    const errors = watchForErrors(page)
+    const longestLine = (problem: Problem): number =>
+      Math.max(
+        0,
+        ...problem.prompt.flatMap((block) =>
+          block.type === 'code' && (block.addresses ?? []).length === 0
+            ? block.lines.map((line) => line.length)
+            : [],
+        ),
+      )
+    const topics = [
+      ['mov-legality', movLegalityProblem],
+      ['rip', ripProblem],
+    ] as const
+    for (const [topic, make] of topics) {
+      let widest = { seed: 0, size: 0 }
+      for (let seed = 0; seed < 300; seed++) {
+        const size = longestLine(make(seed))
+        if (size > widest.size) widest = { seed, size }
+      }
+      // About 32 characters fit in the box at 360 px.
+      expect(widest.size, `${topic}: a line longer than the box`).toBeGreaterThan(36)
+      await openProblem(page, topic, widest.seed)
+      const listing = card(page).locator('[data-code-listing]').first()
+      await expect(listing.locator('[data-code-wrap]')).toHaveCount(1)
+      const view = await listing.evaluate((box) => {
+        const right = box.getBoundingClientRect().right
+        const cut = [...box.querySelectorAll('code')].filter(
+          (code) => code.getBoundingClientRect().right > right + 0.5,
+        )
+        return { scrollsSideways: box.scrollWidth > box.clientWidth + 1, cut: cut.length }
+      })
+      expect(view, `${topic} seed ${widest.seed}`).toEqual({ scrollsSideways: false, cut: 0 })
+      await expectNoSidewaysScroll(page)
+    }
     expect(errors).toEqual([])
   })
 

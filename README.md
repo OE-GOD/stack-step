@@ -10,6 +10,8 @@ to three sentences) of what the step did, with the real numbers. The emulator th
 the programs is written in TypeScript and runs entirely in the browser: no server, no
 sign-in, no tracking. Progress is kept in the browser's own storage.
 
+**Try it:** https://oe-god.github.io/stack-step/ (on GitHub Pages, so without the tutor).
+
 ## What is on the site
 
 - **Stepper**: a code editor with breakpoints; Step, Back, Run and Reset; a speed
@@ -69,14 +71,14 @@ scrolling and console errors:
 `npm run build` makes a plain static site in `dist/`. It uses relative paths and `#/`
 addresses, so it works in any folder of any static host without redirect rules.
 
-These deploy steps have not been tried yet with real GitHub, Vercel or Netlify accounts,
-and the tutor has not yet answered with a real API key. After your first deploy, open the
-site and try it. If something does not work, read the build log and the function log of
-your host.
+The GitHub Pages steps work: this project runs at https://oe-god.github.io/stack-step/.
+The Vercel and Netlify steps have not been tried yet, and the tutor has not yet answered
+with a real API key. After your first deploy, open the site and try it. If something does
+not work, read the build log and the function log of your host.
 
 ### GitHub Pages (no tutor)
 
-The workflow `.github/workflows/deploy-pages.yml` is ready (it has not run yet).
+The workflow `.github/workflows/deploy-pages.yml` is ready.
 
 1. Push the project to a GitHub repository. On a free GitHub account the repository must
    be public: GitHub Pages works with private repositories only on paid plans.
@@ -86,7 +88,7 @@ The workflow `.github/workflows/deploy-pages.yml` is ready (it has not run yet).
    `https://<user>.github.io/<repository>/`.
 
 GitHub Pages cannot run the tutor's server function, so the tutor stays hidden there.
-Everything else works. The browser console shows one 404 error for `/api/tutor`; that is
+Everything else works. The browser console shows one 404 error for `api/tutor`; that is
 expected.
 
 ### Vercel (tutor possible)
