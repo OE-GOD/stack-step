@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <title>Tutor harness · Stack Step</title>
+    <!--
+      A developer page for the optional AI tutor (TutorMount.tsx). It is NOT part of the
+      site: index.html does not link to it and the production build leaves it out.
+
+        STACKSTEP_VITE_CACHE=node_modules/.vite-5211 npx vite --port 5211 --strictPort
+        http://localhost:5211/src/features/tutor/demo.html
+
+      The tutor shows up only when /api/tutor says { "enabled": true }: start the dev
+      server with the API key set (see the top of server/devPlugin.ts), or mock the
+      address in a test. (No key name here: built files must never contain it.)
+
+        ?theme=dark | ?theme=light   start in that theme (tests and screenshots)
+        ?page=practice               pretend to be a practice page (default: the stepper)
+        ?bar=1                       a bar at the bottom of the screen, as the stepper has
+                                     on a phone; the tutor's button must stay above it
+    -->
+    <script>
+      // Pick light or dark before the first paint, like index.html.
+      ;(function () {
+        var wanted = new URLSearchParams(window.location.search).get('theme')
+        var prefersDark =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (wanted === 'dark' || (wanted !== 'light' && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./demo.tsx"></script>
+  </body>
+</html>

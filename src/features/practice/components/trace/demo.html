@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <title>Trace table harness · Stack Step</title>
+    <!--
+      A developer page for the trace table with drag-and-drop chips (TraceTableView.tsx).
+      It is NOT part of the site: index.html does not link to it and the production build
+      leaves it out.
+
+        STACKSTEP_VITE_CACHE=node_modules/.vite-5241 npx vite --port 5241 --strictPort
+        http://localhost:5241/src/features/practice/components/trace/demo.html
+
+      ?problem=1|2|3   which hand-written sample problem to show
+      ?theme=dark      start in the dark theme (or ?theme=light)
+      ?frame=card      put the table in a padded card, to try it in a narrower box
+    -->
+    <script>
+      // Pick light or dark before the first paint, like index.html.
+      ;(function () {
+        var wanted = new URLSearchParams(window.location.search).get('theme')
+        var prefersDark =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (wanted === 'dark' || (wanted !== 'light' && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./demo.tsx"></script>
+  </body>
+</html>

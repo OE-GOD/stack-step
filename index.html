@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Stack Step: learn beginner x86-64 assembly by stepping through code and watching the registers, the stack and the flags change."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <title>Stack Step: learn x86-64 assembly one step at a time</title>
+    <script>
+      // Pick light or dark before the first paint (no flash). Storage may be blocked.
+      ;(function () {
+        var saved = null
+        try {
+          saved = localStorage.getItem('stackstep:theme')
+        } catch (e) {
+          saved = null
+        }
+        var prefersDark =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (saved === 'dark' || (saved !== 'light' && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

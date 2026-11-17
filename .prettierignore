@@ -1,0 +1,16 @@
+dist
+node_modules
+package-lock.json
+playwright-report
+test-results
+coverage
+docs/screenshots
+public
+.vercel
+.netlify
+# Generated ground-truth data (see scripts/)
+src/emulator/__fixtures__/*.json
+# Leftovers from the Vite starter template (unused; safe to delete)
+.oxlintrc.json
+src/App.css
+src/assets

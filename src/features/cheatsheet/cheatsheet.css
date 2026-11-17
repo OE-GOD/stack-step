@@ -1,0 +1,585 @@
+/*
+ * The cheat sheet: one content, three renditions.
+ *
+ *   .cs-screen   the sheet on screen: readable type, one card per section
+ *   .cs-card     the 3×5 inch index card: 6 pt, four columns, the hex ladder along the
+ *                bottom edge. On screen it is the true-size preview; in card mode it prints.
+ *   .cs-letter   the letter page: 10 pt, three columns. It is never shown on screen.
+ *
+ * Which one prints is decided by the attribute `data-cheatsheet-print` on <html>
+ * (see usePrintMode.ts): `letter` while the page is open, `card` from a click on the card
+ * button until that print job is over.
+ *
+ * This file is plain CSS outside every cascade layer, so its rules win over the utility
+ * classes of the UI kit on the same element (those live in layers).
+ */
+
+/* ══════════════════════ Shared by the three renditions ══════════════════════ */
+
+.cs-sheet {
+  /* Space between two rows of a block, and between two blocks of a section. */
+  --cs-row-gap: 0.3rem;
+  --cs-block-gap: 0.7rem;
+  --cs-sans: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --cs-mono: var(--font-mono, ui-monospace, monospace);
+}
+
+.cs-sheet .cs-body > * + * {
+  margin-top: var(--cs-block-gap);
+}
+
+.cs-sheet .cs-lines > * + *,
+.cs-sheet .cs-legend {
+  margin-top: var(--cs-row-gap);
+}
+
+.cs-sheet .cs-table {
+  border-collapse: collapse;
+}
+
+.cs-sheet .cs-table th,
+.cs-sheet .cs-table td {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.cs-sheet .cs-table thead th,
+.cs-sheet .cs-illegal {
+  font-weight: 700;
+}
+
+.cs-sheet .cs-registers tbody {
+  font-family: var(--cs-mono);
+}
+
+.cs-sheet .cs-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--cs-mono);
+}
+
+.cs-sheet .cs-ladder li {
+  display: flex;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════ On screen ══════════════════════════════ */
+
+.cs-screen {
+  columns: 2 24rem;
+  column-gap: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.cs-screen > .cs-sec {
+  margin-bottom: 1.25rem;
+  break-inside: avoid;
+}
+
+.cs-screen .cs-body {
+  container-type: inline-size;
+}
+
+/* A term and its meaning, side by side. */
+.cs-screen .cs-pairs {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 0.75rem;
+  row-gap: var(--cs-row-gap);
+}
+
+.cs-screen .cs-pair {
+  display: contents;
+}
+
+/* A term stays in one piece: its column is as wide as the longest term. */
+.cs-screen dt code {
+  max-width: none;
+  white-space: nowrap;
+}
+
+.cs-screen .cs-table {
+  width: 100%;
+}
+
+.cs-screen .cs-table th,
+.cs-screen .cs-table td {
+  padding: 0.25rem 0.75rem 0.25rem 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.cs-screen .cs-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.cs-screen .cs-table thead th {
+  color: var(--c-muted);
+  font-size: 0.8125rem;
+}
+
+.cs-screen .cs-registers tbody,
+.cs-screen .cs-jumps code {
+  font-size: 0.875rem;
+}
+
+.cs-screen .cs-legal {
+  color: var(--c-good);
+}
+
+.cs-screen .cs-illegal {
+  color: var(--c-bad);
+}
+
+.cs-screen .cs-ladder {
+  row-gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.cs-screen .cs-ladder span {
+  padding: 0 0.3rem;
+  color: var(--c-muted);
+}
+
+/* In a narrow card, a long term goes on its own line and its meaning under it. */
+@container (max-width: 26rem) {
+  .cs-screen .cs-sec--lea-vs-mov .cs-pairs,
+  .cs-screen .cs-sec--calling-convention .cs-pairs {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .cs-screen .cs-sec--lea-vs-mov dd,
+  .cs-screen .cs-sec--calling-convention dd {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* ─────────────────────── The true-size preview frame ─────────────────────── */
+
+.cs-preview {
+  display: grid;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.cs-preview-frame {
+  width: 100%;
+  max-width: 5in;
+  height: calc(3in * var(--cs-preview-scale, 1));
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px var(--c-line-strong),
+    0 6px 16px -6px rgb(0 0 0 / 0.35);
+}
+
+.cs-preview-scaler {
+  width: 5in;
+  height: 3in;
+  transform: scale(var(--cs-preview-scale, 1));
+  transform-origin: 0 0;
+}
+
+/* The letter page exists only on paper. */
+.cs-letter-page {
+  display: none;
+}
+
+/* ═════════════════════ Both printed pages: card and letter ═════════════════════ */
+
+.cs-printed {
+  /*
+   * Arial, Helvetica and Liberation Sans have the same letter widths, so a line breaks at
+   * the same place on every computer, and the fitted card stays fitted.
+   */
+  --cs-sans: Arial, Helvetica, 'Liberation Sans', Arimo, sans-serif;
+  /*
+   * Not `ui-monospace` (the site's own code font starts with it): Safari and every browser
+   * on an iPhone or iPad turn it into SF Mono, which is 2.7 % wider than Menlo, the font
+   * the card was fitted with. These fonts have Menlo's letter widths or narrower ones:
+   * DejaVu Sans Mono is Menlo's twin, Liberation Mono has the widths of Courier New, and
+   * Consolas is narrower. Menlo is on every Mac, iPhone and iPad.
+   */
+  --cs-mono: Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', 'Courier New', monospace;
+  --cs-rule: 0.5pt solid #000;
+
+  box-sizing: border-box;
+  background: #fff;
+  color: #000;
+  font-family: var(--cs-sans);
+  text-align: left;
+}
+
+.cs-printed code {
+  font-family: var(--cs-mono);
+  white-space: nowrap;
+}
+
+.cs-printed .cs-cols {
+  display: grid;
+}
+
+.cs-printed .cs-col {
+  min-width: 0;
+  border-left: var(--cs-rule);
+}
+
+.cs-printed .cs-col:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.cs-printed .cs-col:last-child {
+  padding-right: 0;
+}
+
+.cs-printed .cs-h {
+  font-weight: 700;
+}
+
+/* A term and its meaning run on as one line. A line that wraps is set in a little. */
+.cs-printed dt,
+.cs-printed dd {
+  display: inline;
+}
+
+.cs-printed .cs-pair + .cs-pair {
+  margin-top: var(--cs-row-gap);
+}
+
+/* The indent of a wrapped line. Not for the legend under the mov table ("* needs a size:"):
+   its second line is the example alone, and the long code `mov dword ptr [rbx], 5` needs
+   the whole width of the card's column, with no room for an indent. */
+.cs-printed .cs-lines > p,
+.cs-printed .cs-pair {
+  padding-left: 0.5em;
+  text-indent: -0.5em;
+}
+
+/* Where the terms are short, the meanings line up in a second column. */
+.cs-printed .cs-sec--addressing .cs-pairs,
+.cs-letter .cs-sec--stack .cs-pairs,
+.cs-letter .cs-sec--flags-and-jumps .cs-pairs {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 0.5em;
+  row-gap: var(--cs-row-gap);
+}
+
+.cs-printed .cs-sec--addressing .cs-pair,
+.cs-letter .cs-sec--stack .cs-pair,
+.cs-letter .cs-sec--flags-and-jumps .cs-pair {
+  display: contents;
+  text-indent: 0;
+}
+
+.cs-printed .cs-table th,
+.cs-printed .cs-table td {
+  white-space: nowrap;
+}
+
+.cs-printed .cs-table th:last-child,
+.cs-printed .cs-table td:last-child {
+  padding-right: 0;
+}
+
+.cs-printed .cs-foot {
+  border-top: var(--cs-rule);
+}
+
+/* Under the ladder, the short lines share a row. */
+.cs-printed .cs-foot .cs-lines {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.5em;
+}
+
+.cs-printed .cs-foot .cs-lines > p {
+  padding-left: 0;
+  text-indent: 0;
+}
+
+/* ═════════════════════════ The index card (5 × 3 in) ═════════════════════════ */
+
+.cs-card {
+  --cs-row-gap: 0pt;
+  --cs-block-gap: 1pt;
+
+  display: grid;
+  /* The columns take the room that the foot leaves. If the text ever needs more than the
+     card has, the card grows (onto a second page) and no line is hidden or overprinted. */
+  grid-template-rows: 1fr auto;
+  width: 5in;
+  min-height: 3in;
+  /* On screen this stands for the page margin. In print the real margin takes over. */
+  padding: 0.1in;
+  font-size: 6pt;
+  line-height: 1.12;
+}
+
+.cs-card .cs-cols {
+  /*
+   * Hand-set widths. Each column is about 3 % wider than its longest line (the register
+   * table; "[x]: the memory at address x"; "64 bits = 8 bytes = 16 hex digits"), so a
+   * browser whose letters come out a little wider breaks every line at the same place.
+   * e2e/cheatsheet.spec.ts checks this with letters 2.5 % wider.
+   */
+  grid-template-columns: 80.625pt 89.375pt 94pt minmax(0, 1fr);
+}
+
+.cs-card .cs-col {
+  padding: 0 3pt;
+}
+
+/* A section starts with a rule and its heading. The rule also ends the section above. */
+.cs-card .cs-sec + .cs-sec {
+  margin-top: 2pt;
+  padding-top: 1.5pt;
+  border-top: var(--cs-rule);
+}
+
+.cs-card .cs-h {
+  display: flex;
+  justify-content: space-between;
+  font-size: 6pt;
+  line-height: 1.12;
+}
+
+.cs-card .cs-note {
+  font-weight: 400;
+}
+
+.cs-card code {
+  font-size: 6pt;
+  /*
+   * Code inside a line of Arial must not make the line taller. Each font sits on the line
+   * with its own ascent and descent, and some mono fonts (SF Mono, for one) stick out of
+   * an Arial line by about 1 px: 40 lines with code would then need a second card. With a
+   * line height of 0, the line keeps the height of its Arial text whatever the mono font.
+   * The letters are drawn as before: they only stop counting for the height of the line.
+   */
+  line-height: 0;
+}
+
+/* Not in the ladder: there each number is a box of its own (a flex item), not a piece of a
+   line of Arial, and a box with a line height of 0 would draw its number out of place. */
+.cs-card .cs-ladder code {
+  line-height: inherit;
+}
+
+/* `cs-long`: a word for where there is room. The card leaves it out. */
+.cs-card .cs-long {
+  display: none;
+}
+
+/* The corner of the mov table: the card says it at the end of the heading line instead. */
+.cs-card .cs-corner {
+  display: none;
+}
+
+.cs-card .cs-table th,
+.cs-card .cs-table td {
+  padding-right: 3pt;
+}
+
+.cs-card .cs-registers th,
+.cs-card .cs-registers td {
+  padding-right: 2pt;
+}
+
+/* The foot of the card: the heading and the ladder on one line, the rest under them. */
+.cs-card .cs-foot {
+  margin-top: 1.5pt;
+  padding-top: 1pt;
+}
+
+.cs-card .cs-foot .cs-sec {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 6pt;
+}
+
+.cs-card .cs-foot .cs-body {
+  display: contents;
+}
+
+.cs-card .cs-foot .cs-lines {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.cs-card .cs-ladder span {
+  padding: 0 1.2pt;
+}
+
+/* ═══════════════════════ The letter page (8.5 × 11 in) ═══════════════════════ */
+
+.cs-letter {
+  --cs-row-gap: 2.5pt;
+  --cs-block-gap: 7pt;
+
+  display: grid;
+  /* Title, columns, foot. The columns take the room that is left, so the foot sits at the
+     bottom of the page: 10 inches inside the margins, less 2 px so that a browser that
+     rounds the page height down cannot find the sheet a hair too tall for one page. */
+  grid-template-rows: auto 1fr auto;
+  width: 7.5in;
+  min-height: calc(10in - 2px);
+  font-size: 10pt;
+  line-height: 1.35;
+}
+
+.cs-letter .cs-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14pt;
+  padding-bottom: 5pt;
+  border-bottom: 1pt solid #000;
+  font-size: 18pt;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cs-letter .cs-title-note {
+  font-size: 10pt;
+  font-weight: 400;
+}
+
+.cs-letter .cs-cols {
+  /* The middle column holds the two widest tables: the forms of mov, and the jumps. */
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.12fr) minmax(0, 1fr);
+}
+
+.cs-letter .cs-col {
+  padding: 0 11pt;
+}
+
+.cs-letter .cs-sec + .cs-sec {
+  margin-top: 15pt;
+}
+
+.cs-letter .cs-h {
+  margin-bottom: 5pt;
+  padding-bottom: 2pt;
+  border-bottom: var(--cs-rule);
+  font-size: 11pt;
+  line-height: 1.25;
+}
+
+.cs-letter .cs-note {
+  display: none;
+}
+
+.cs-letter code,
+.cs-letter .cs-registers tbody,
+.cs-letter .cs-ladder {
+  font-size: 9.5pt;
+}
+
+.cs-letter .cs-table th,
+.cs-letter .cs-table td {
+  padding: 1pt 8pt 1pt 0;
+}
+
+/* "64 bits" may take two lines in its narrow column. */
+.cs-letter .cs-registers {
+  width: 100%;
+}
+
+.cs-letter .cs-registers thead th {
+  white-space: normal;
+}
+
+/* The heads of the mov table keep their short form, so the table fits its column. */
+.cs-letter .cs-mov-forms thead .cs-long {
+  display: none;
+}
+
+.cs-letter .cs-foot {
+  margin-top: 16pt;
+  padding-top: 12pt;
+}
+
+.cs-letter .cs-ladder {
+  row-gap: 2pt;
+}
+
+.cs-letter .cs-ladder span {
+  padding: 0 3.5pt;
+}
+
+/* ══════════════════════════════════ Print ══════════════════════════════════ */
+
+@media print {
+  /* White paper and black ink in both themes. */
+  html[data-cheatsheet-print],
+  html[data-cheatsheet-print] body {
+    min-height: 0;
+    background: #fff;
+    color: #000;
+    color-scheme: light;
+  }
+
+  /*
+   * On screen, <body> and the frame of the site (AppShell) are at least as tall as the
+   * window. Paper has no window: without a minimum height, no browser can take "the
+   * height of the window" for more than one page and add an empty second page.
+   */
+  html[data-cheatsheet-print] #root > div {
+    display: block;
+    min-height: 0;
+  }
+
+  html[data-cheatsheet-print] .cs-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  html[data-cheatsheet-print] .cs-screen-only {
+    display: none;
+  }
+
+  html[data-cheatsheet-print] .cs-top,
+  html[data-cheatsheet-print] .cs-preview {
+    display: block;
+  }
+
+  /* The preview loses its frame: only the card itself goes on the paper. */
+  html[data-cheatsheet-print] .cs-preview-frame {
+    max-width: none;
+    height: auto;
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  html[data-cheatsheet-print] .cs-preview-scaler {
+    width: auto;
+    height: auto;
+    transform: none;
+  }
+
+  /* The page margin of the card comes from the @page rule now. The card fills the page
+     inside the margins (4.8 × 2.8 in), less 2 px of height: see the letter page. */
+  html[data-cheatsheet-print] .cs-card {
+    width: 4.8in;
+    min-height: calc(2.8in - 2px);
+    padding: 0;
+  }
+
+  html[data-cheatsheet-print='card'] .cs-letter-page,
+  html[data-cheatsheet-print='letter'] .cs-preview {
+    display: none;
+  }
+
+  html[data-cheatsheet-print='letter'] .cs-letter-page {
+    display: block;
+  }
+}

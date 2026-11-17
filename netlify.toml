@@ -1,0 +1,18 @@
+# Netlify: build the static site, and deploy the optional tutor function.
+#
+# The site is plain static files (hash routing: no redirect rules are needed).
+# The tutor is the one function in netlify/functions/. It answers at /api/tutor (the
+# path is set in that file). The tutor stays hidden until the environment variable
+# ANTHROPIC_API_KEY is set for the site in the Netlify UI, with the "Functions" scope.
+# A variable written in this file would not reach the function.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 needs Node 20.19 or newer, or 22.12 or newer.
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
